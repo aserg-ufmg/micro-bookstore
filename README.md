@@ -160,7 +160,8 @@ username to the URL):
 
 In this first task, you will implement a new operation in the `Inventory` service. This operation, called `SearchProductByID`, will search for a product given its ID.
 
-As previously described, the operation signatures of each microservice are defined in a `.proto` file, in this case [proto/inventory.proto](https://github.com/aserg-ufmg/micro-livraria/blob/main/proto/inventory.proto).
+As previously described, the operation signatures of each microservice are defined in a `.proto` file, in this case [proto/inventory.proto](https://github.com/aserg-ufmg/micro-bookstore
+/blob/main/proto/inventory.proto).
 
 #### Step 1
 
@@ -208,11 +209,11 @@ message ProductResponse {
 
 #### Step 3
 
-Now you must implement the `SearchProductByID` function in the file [services/inventory/index.js](https://github.com/aserg-ufmg/micro-livraria/blob/main/services/inventory/index.js).
+Now you must implement the `SearchProductByID` function in the file [services/inventory/index.js](https://github.com/aserg-ufmg/micro-bookstore/blob/main/services/inventory/index.js).
 
 To reinforce: in the previous step, we only declared the function signature. Now we will provide an implementation for it.
 
-To do this, you need to implement the function required by the second parameter of the `server.addService` function, located on line 17 of the file [services/inventory/index.js](https://github.com/aserg-ufmg/micro-livraria/blob/main/services/inventory/index.js).
+To do this, you need to implement the function required by the second parameter of the `server.addService` function, located on line 17 of the file [services/inventory/index.js](https://github.com/aserg-ufmg/micro-bookstore/blob/main/services/inventory/index.js).
 
 Similarly to the `SearchAllProducts` function, which is already implemented, you must add the body of the `SearchProductByID` function with the logic for searching products by ID. This code should be added right after `SearchAllProducts` on line 23.
 
@@ -229,17 +230,17 @@ The function above uses the `find` method to search `products` for the given pro
 
 * `payload` is the input parameter of our service, as defined earlier in the .proto file (step 2). It stores the ID of the product we want to search. To access this ID, simply write `payload.request.id`.
 * `product` is a product unit to be searched by the native JavaScript `find` function. This search is performed across all items in the product list until the first `product` matches the search condition, i.e., `product.id == payload.request.id`.
-* [products](https://github.com/aserg-ufmg/micro-livraria/blob/main/services/inventory/products.json) is a JSON file containing the description of the books for sale in the bookstore.
+* [products](https://github.com/aserg-ufmg/micro-bookstore/blob/main/services/inventory/products.json) is a JSON file containing the description of the books for sale in the bookstore.
 * `callback` is a function that must be invoked with two parameters:
 
   * The first parameter is an error object, if one occurs. In our example, no error is returned, so it is `null`.
-  * The second parameter is the function result, in our case a `ProductResponse`, as defined in the [proto/inventory.proto](https://github.com/aserg-ufmg/micro-livraria/blob/main/proto/inventory.proto) file.
+  * The second parameter is the function result, in our case a `ProductResponse`, as defined in the [proto/inventory.proto](https://github.com/aserg-ufmg/micro-bookstore/blob/main/proto/inventory.proto) file.
 
 #### Step 4
 
 Finally, we need to include the `SearchProductByID` function in our `Controller`. To do this, you must add a new `/product/{id}` route that will receive the product ID as a parameter. In the route definition, you must also include the call to the method defined in Step 3.
 
-Specifically, the following code snippet should be added on line 44 of the file [services/controller/index.js](https://github.com/aserg-ufmg/micro-livraria/blob/main/services/controller/index.js), right after the `/shipping/:cep` route.
+Specifically, the following code snippet should be added on line 44 of the file [services/controller/index.js](https://github.com/aserg-ufmg/micro-bookstore/blob/main/services/controller/index.js), right after the `/shipping/:cep` route.
 
 ```js
 app.get('/product/:id', (req, res, next) => {
@@ -324,20 +325,21 @@ CMD ["node", "/app/services/shipping/index.js"]
 Now we will compile the Dockerfile and create the image. To do this, run the following command in a terminal (this command must be run from the project root; it may also take a little longer to execute):
 
 ```
-docker build -t micro-livraria/shipping -f shipping.Dockerfile ./
+docker build -t micro-bookstore/shipping -f shipping.Dockerfile ./
 ```
 
 where:
 
 * `docker build`: Docker build command.
-* `-t micro-livraria/shipping`: tag to identify the created image.
+* `-t micro-bookstore/shipping`: tag to identify the created image.
 * `-f shipping.Dockerfile`: dockerfile to be compiled.
 
 The `./` at the end indicates that we are executing the Dockerfile commands from the project root.
 
 #### Step 3
 
-Before starting the service via Docker container, we need to remove the initialization of the Shipping service from the `npm run start` command. To do this, just remove the `start-shipping` subcommand located on line 7 of the [package.json](https://github.com/aserg-ufmg/micro-livraria/blob/main/package.json) file, as shown in the diff below (the line with a "-" symbol at the beginning represents the original file line; the line with a "+" symbol represents how the line should look after the change):
+Before starting the service via Docker container, we need to remove the initialization of the Shipping service from the `npm run start` command. To do this, just remove the `start-shipping` subcommand located on line 7 of the [package.json](https://github.com/aserg-ufmg/micro-bookstore
+/blob/main/package.json) file, as shown in the diff below (the line with a "-" symbol at the beginning represents the original file line; the line with a "+" symbol represents how the line should look after the change):
 
 ```diff
 diff --git a/package.json b/package.json
@@ -360,7 +362,7 @@ Then, stop the old command (just press CTRL-C in the terminal) and run `npm run 
 Finally, to run the image created in the previous step (i.e., put the `Shipping` microservice back online), simply use the following command:
 
 ```
-docker run -ti --name shipping -p 3001:3001 micro-livraria/shipping
+docker run -ti --name shipping -p 3001:3001 micro-bookstore/shipping
 ```
 
 where:
@@ -369,7 +371,7 @@ where:
 * `-ti`: enables interaction with the container via terminal.
 * `--name shipping`: defines the name of the created container.
 * `-p 3001:3001`: maps port 3001 of the container to your machine.
-* `micro-livraria/shipping`: specifies which image to run.
+* `micro-bookstore/shipping`: specifies which image to run.
 
 If everything is correct, you will receive the following message in your terminal:
 
@@ -412,13 +414,13 @@ where:
 * `shipping`: name of the container to be removed.
 
 ```
-docker rmi micro-livraria/shipping
+docker rmi micro-bookstore/shipping
 ```
 
 where:
 
 * `docker rmi`: command to remove an image.
-* `micro-livraria/shipping`: name of the image to be removed.
+* `micro-bookstore/shipping`: name of the image to be removed.
 
 ---
 
