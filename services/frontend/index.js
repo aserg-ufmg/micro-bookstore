@@ -15,20 +15,20 @@ function newBook(book) {
             <div class="card-content">
                 <div class="content book" data-id="${book.id}">
                     <div class="book-meta">
-                        <p class="is-size-4">R$${book.price.toFixed(2)}</p>
-                        <p class="is-size-6">Disponível em estoque: 5</p>
+                        <p class="is-size-4">US$ ${book.price.toFixed(2)}</p>
+                        <p class="is-size-6">Available in stock: 5</p>
                         <h4 class="is-size-3 title">${book.name}</h4>
                         <p class="subtitle">${book.author}</p>
                     </div>
                     <div class="field has-addons">
                         <div class="control">
-                            <input class="input" type="text" placeholder="Digite o zipcode" />
+                            <input class="input" type="text" placeholder="Enter the ZIP code" />
                         </div>
                         <div class="control">
-                            <a class="button button-shipping is-info" data-id="${book.id}"> Calcular Frete </a>
+                            <a class="button button-shipping is-info" data-id="${book.id}"> Calculate Shipping </a>
                         </div>
                     </div>
-                    <button class="button button-buy is-success is-fullwidth">Comprar</button>
+                    <button class="button button-buy is-success is-fullwidth">Buy</button>
                 </div>
             </div>
         </div>`;
@@ -44,10 +44,10 @@ function calculateShipping(id, cep) {
             throw data.statusText;
         })
         .then((data) => {
-            swal('shipping', `O frete é: R$${data.value.toFixed(2)}`, 'success');
+            swal('shipping', `The shipping cost is: US$${data.value.toFixed(2)}`, 'success');
         })
         .catch((err) => {
-            swal('error', 'error ao consultar shipping', 'error');
+            swal('error', 'error while accessing shipping', 'error');
             console.error(err);
         });
 }
@@ -71,20 +71,20 @@ document.addEventListener('DOMContentLoaded', function () {
                 document.querySelectorAll('.button-shipping').forEach((btn) => {
                     btn.addEventListener('click', (e) => {
                         const id = e.target.getAttribute('data-id');
-                        const cep = document.querySelector(`.book[data-id="${id}"] input`).value;
-                        calculateShipping(id, cep);
+                        const zipcode = document.querySelector(`.book[data-id="${id}"] input`).value;
+                        calculateShipping(id, zipcode);
                     });
                 });
 
                 document.querySelectorAll('.button-buy').forEach((btn) => {
                     btn.addEventListener('click', (e) => {
-                        swal('Compra de livro', 'Sua compra foi realizada com success', 'success');
+                        swal('Book purchase', 'Your purchase was successfully completed', 'success');
                     });
                 });
             }
         })
         .catch((err) => {
-            swal('error', 'error ao listar os products', 'error');
+            swal('error', 'error while listing products', 'error');
             console.error(err);
         });
 });
