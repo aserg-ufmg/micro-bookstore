@@ -65,7 +65,8 @@ however, is based on [gRPC](https://grpc.io/).
     <img width="70%" src="https://user-images.githubusercontent.com/7620947/108454750-bc2b4c80-724b-11eb-82e5-717b8b5c5a88.png" />
 </p>
 
-We chose gRPC for the back-end because it performs better than REST.
+We chose gRPC for the back-end because it can offer better performance 
+than REST in many scenarios.
 Specifically, gRPC is based on the concept of Remote Procedure Call
 (RPC). The idea is simple: in distributed applications using gRPC, a
 client can call functions implemented in other processes transparently,
@@ -78,7 +79,7 @@ To achieve this transparency, gRPC relies on two key concepts:
 * A protocol for exchanging messages between client and server applications
 
 In gRPC, the implementation of these concepts is called **Protocol
-Buffer**, which can be summarized as:
+Buffers**, which can be summarized as:
 
 > Protocol Buffer = interface definition language + protocol for exchanging messages between client and server applications
 
@@ -99,8 +100,8 @@ returns a `ShippingResponse` object with the shipping cost.
     <img width="70%" src="https://user-images.githubusercontent.com/7620947/108770189-c776c480-7538-11eb-850a-f8a23f562fa5.png" />
 </p>
 
-In gRPC, messages (e.g., `Shippingload`) are composed of fields, similar
-to a `struct` in C. Each field has a name (e.g., `cep`) and a type
+In gRPC, messages (e.g., `ShippingPayload`) are composed of fields, similar
+to a `struct` in C. Each field has a name (e.g., `zipcode`) and a type
 (e.g., `string`), as well as an integer identifier (e.g., `= 1`) used
 in the binary format of gRPC messages.
 
@@ -263,7 +264,7 @@ app.get('/product/:id', (req, res, next) => {
 
 To finish, make a call to the new API endpoint: [http://localhost:3000/product/1](http://localhost:3000/product/1)
 
-To be clear: up to this point, we have only implemented the new operation in the backend. Its incorporation into the frontend is pending, as it requires changes to the Web interface, such as adding a "Search Book" button.
+To be clear: up to this point, we have only implemented the new operation in the back-end. Its incorporation into the frontend is pending, as it requires changes to the Web interface, such as adding a "Search Book" button.
 
 **IMPORTANT**: If everything worked correctly, perform a **COMMIT & PUSH** (and make sure your GitHub repository is updated; this is essential for your work to be properly graded).
 
