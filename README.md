@@ -1,400 +1,152 @@
-# micro-bookstore: Exemplo Prático de microservices
+# Micro-Bookstore: A Practical Example of Microservices
 
-Este repositório contem um exemplo simples de uma bookstore virtual construída usando uma **arquitetura de microservices**.
+This repository contains a simple example of a virtual bookstore built using a **microservices architecture**.
 
-O exemplo foi projetado para ser usado em uma **aula prática sobre microservices**, que pode, por exemplo, ser realizada após o estudo do [Capítulo 7](https://engsoftmoderna.info/cap7.html) do livro [Engenharia de Software Moderna](https://engsoftmoderna.info).
+The example was designed to be used in a **hands-on class about microservices**, which can, for example, take place after studying [Chapter 7](https://engsoftmoderna.info/cap7.html) of the book [Modern Software Engineering](https://engsoftmoderna.info).
 
-O objetivo da aula é permitir que o aluno tenha um primeiro contato com microservices e com tecnologias normalmente usadas nesse tipo de arquitetura, tais como **Node.js**, **REST**, **gRPC** e **Docker**.
+The goal of the class is to give students a first contact with microservices and with technologies commonly used in this type of architecture, such as **Node.js**, **REST**, **gRPC**, and **Docker**.
 
-As our goal is educational, na bookstore virtual estão à venda apenas três livros, conforme pode ser visto na próxima figura, que mostra a interface Web do sistema. Além disso, the purchase operation only simulates the user action, não efetuando mudanças no inventory. Assim, os clientes da bookstore podem realizar apenas duas operações: (1) listar os products à venda; (2) calcular o shipping de shipping.
+Since our goal is educational, the virtual bookstore offers only three books for sale, as shown in the figure below, which illustrates the system’s web interface. Furthermore, the purchase operation only simulates the user’s action and does not update the stock. Thus, bookstore clients can perform only two operations: (1) list products for sale; (2) calculate shipping costs.
 
 <p align="center">
     <img width="70%" src="https://user-images.githubusercontent.com/7620947/108773349-f68f3500-753c-11eb-8c4f-434ca9a9deec.png" />
 </p>
 
-No restante deste documento vamos:
+In the rest of this document we will:
 
--   Describe the system, focusing on its architecture.
--   Present instructions for local execution, usando o código disponibilizado no repositório.
--   Describe two practical tasks to be performed by students, as quais envolvem:
-    -   Tarefa Prática #1: Implementação de uma nova operação em um dos microservices
-    -   Tarefa Prática #2: Criação de containers Docker para facilitar a execução dos microservices.
+* Describe the system, focusing on its architecture.
+* Provide instructions to run it locally using the code available in this repository.
+* Describe two practical tasks for students:
 
-## Arquitetura
+  * Practical Task #1: Implement a new operation in one of the microservices.
+  * Practical Task #2: Create Docker containers to facilitate running the microservices.
 
-A micro-bookstore possui quatro microservices:
+## Architecture
 
--   Front-end: microservice responsável pela interface com usuário, conforme mostrado na figura anterior.
--   Controller: microservice responsável por intermediar a comunicação entre o front-end e o backend do sistema.
--   Shipping: microserviço para calculation de shipping.
--   Inventory: microserviço para controle do inventory da bookstore.
+The micro-bookstore has four microservices:
 
-Os quatro microservices estão implementados em **JavaScript**, usando o Node.js para execução dos serviços no back-end.
+* Front-end: microservice responsible for the user interface, as shown in the figure above.
+* Controller: microservice responsible for mediating communication between the front-end and the backend.
+* Shipping: microservice responsible for calculating shipping costs.
+* Inventory: microservice responsible for managing the bookstore’s stock.
 
-No entanto, **você conseguirá completar as tarefas práticas mesmo se nunca programou em JavaScript**. O motivo é que o nosso roteiro já inclui os trechos de código que devem ser copiados para o sistema.
+All four microservices are implemented in **JavaScript**, using Node.js for backend execution.
 
-Para facilitar a execução e entendimento do sistema, também não usamos bancos de dados ou serviços externos.
+However, **you will be able to complete the practical tasks even if you have never programmed in JavaScript**, because our guide already includes the code snippets you need to copy into the system.
 
-## Protocolos de Comunicação
+To simplify execution and understanding, no databases or external services are used.
 
-Como ilustrado no diagrama a seguir, a comunicação entre o front-end e o backend usa uma **API REST**, como é comum no caso de sistemas Web.
+## Communication Protocols
 
-Já a comunicação entre o Controller e os microservices do back-end é baseada em [gRPC](https://grpc.io/).
+As illustrated in the diagram below, communication between the front-end and the backend uses a **REST API**, which is common for web systems.
+
+Communication between the Controller and the backend microservices, however, is based on [gRPC](https://grpc.io/).
 
 <p align="center">
     <img width="70%" src="https://user-images.githubusercontent.com/7620947/108454750-bc2b4c80-724b-11eb-82e5-717b8b5c5a88.png" />
 </p>
 
-Optamos por usar gRPC no backend porque ele possui um desempenho melhor do que REST. Especificamente, gRPC é baseado no conceito de **Chamada Remota de Procedimentos (RPC)**. A ideia é simples: em aplicações distribuídas que usam gRPC, um cliente pode chamar funções implementadas em outros processos de forma transparente, isto é, como se tais funções fossem locais. Em outras palavras, chamadas gRPC tem a mesma sintaxe de chamadas normais de função.
+We chose gRPC for the backend because it performs better than REST. Specifically, gRPC is based on the concept of **Remote Procedure Call (RPC)**. The idea is simple: in distributed applications using gRPC, a client can call functions implemented in other processes transparently, as if those functions were local. In other words, gRPC calls have the same syntax as normal function calls.
 
-Para viabilizar essa transparência, gRPC usa dois conceitos centrais:
+To achieve this transparency, gRPC relies on two key concepts:
 
--   uma linguagem para definição de interfaces
--   um protocolo para troca de mensagens entre aplicações clientes e servidoras.
+* a language for interface definition
+* a protocol for exchanging messages between client and server applications
 
-Especificamente, no caso de gRPC, a implementação desses dois conceitos ganhou o name de **Protocol Buffer**. Ou seja, podemos dizer que:
+In gRPC, the implementation of these concepts is called **Protocol Buffer**, which can be summarized as:
 
-> Protocol Buffer = linguagem para definição de interfaces + protocolo para definição das mensagens trocadas entre aplicações clientes e servidoras
+> Protocol Buffer = interface definition language + protocol for defining messages exchanged between client and server applications
 
-### Exemplo de Arquivo .proto
+### Example of a .proto File
 
-Quando trabalhamos com gRPC, cada microserviço possui um arquivo `.proto` que define a assinatura das operações que ele disponibiliza para os outros microservices.
-Neste mesmo arquivo, declaramos também os tipos dos parâmetros de entrada e saída dessas operações.
+With gRPC, each microservice has a `.proto` file that defines the signatures of the operations it provides to other microservices. This file also declares the types of the input and output parameters.
 
-O exemplo a seguir mostra o arquivo [.proto](https://github.com/aserg-ufmg/micro-bookstore/blob/main/proto/shipping.proto) do nosso microservice de shipping. Nele, definimos que esse microservice disponibiliza uma função `GetShippingRate`. Para chamar essa função devemos passar como parâmetro de entrada um objeto contendo o zipcode (`ShippingPayLoad`). Após sua execução, a função retorna como resultado um outro objeto (`ShippingResponse`) com o valor do shipping.
+The following example shows the [.proto](https://github.com/aserg-ufmg/micro-livraria/blob/main/proto/shipping.proto) file for our shipping microservice. It defines a function `GetShippingRate`. To call this function, we must provide an object containing the ZIP code (`ShippingPayLoad`) as input. The function then returns a `ShippingResponse` object with the shipping cost.
 
 <p align="center">
     <img width="70%" src="https://user-images.githubusercontent.com/7620947/108770189-c776c480-7538-11eb-850a-f8a23f562fa5.png" />
 </p>
 
-Em gRPC, as mensagens (exemplo: `Shippingload`) são formadas por um conjunto de campos, tal como em um `struct` da linguagem C, por exemplo. Todo campo possui um name (exemplo: `zipcode`) e um tipo (exemplo: `string`). Além disso, todo campo tem um número inteiro que funciona como um identificador único para o mesmo na mensagem (exemplo: ` = 1`). Esse número é usado pela implementação de gRPC para identificar o campo no formato binário de dados usado por gRPC para comunicação distribuída.
+In gRPC, messages (e.g., `Shippingload`) are composed of fields, similar to a `struct` in C. Each field has a name (e.g., `cep`) and a type (e.g., `string`), as well as an integer identifier (e.g., `= 1`) used in the binary format of gRPC messages.
 
-Arquivos .proto são usados para gerar **stubs**, que nada mais são do que proxies que encapsulam os detalhes de comunicação em rede, incluindo troca de mensagens, protocolos, etc. Mais detalhes sobre o padrão de projeto Proxy podem ser obtidos no [Capítulo 6](https://engsoftmoderna.info/cap6.html). 
+.proto files are used to generate **stubs**, which are proxies encapsulating the details of network communication. More on the Proxy design pattern can be found in [Chapter 6](https://engsoftmoderna.info/cap6.html).
 
-Em linguagens estáticas, normalmente precisa-se chamar um compilador para gerar o código de tais stubs. No caso de JavaScript, no entanto, esse passo não é necessário, pois os stubs são gerados de forma transparente, em tempo de execução.
+In static languages, a compiler is usually required to generate stub code. In JavaScript, however, this is done transparently at runtime.
 
-## running o Sistema
+## Running the System
 
-A seguir vamos descrever a sequência de passos para você executar o sistema localmente em sua máquina. Ou seja, todos os microservices estarão running na sua máquina.
+The following steps describe how to run the system locally (all microservices will run on your machine):
 
-**IMPORTANTE:** Você deve seguir esses passos antes de implementar as tarefas práticas descritas nas próximas seções.
+1. Fork the repository by clicking the **Fork** button in the upper right corner of this page.
 
-1. Faça um fork do repositório. Para isso, basta clicar no botão **Fork** no canto superior direito desta página.
+2. Clone the project in your terminal (remember to add your GitHub username to the URL):
 
-2. Vá para o terminal do seu sistema operacional e clone o projeto (lembre-se de incluir o seu usuário GitHub na URL antes de executar)
+   ```
+   git clone https://github.com/<YOUR USERNAME>/micro-livraria.git
+   ```
 
-```
-git clone https://github.com/<SEU USUÁRIO>/micro-bookstore.git
-```
+3. Install [Node.js](https://nodejs.org/en/download/) if it is not already installed.
 
-3. É também necessário ter o Node.js instalado na sua máquina. Se você não tem, siga as instruções para instalação contidas nessa [página](https://nodejs.org/en/download/).
+4. In the project directory, install the dependencies:
 
-4. Em um terminal, vá para o diretório no qual o projeto foi clonado e instale as dependências necessárias para execução dos microservices:
+   ```
+   cd micro-livraria
+   npm install
+   ```
 
-```
-cd micro-bookstore
-npm install
-```
+5. Start the microservices:
 
-5. Inicie os microservices através do comando:
+   ```
+   npm run start
+   ```
 
-```
-npm run start
-```
+6. Test the backend API:
 
-6.  Para fins de teste, efetue uma requisição para o microservice responsável pela API do backend.
+   ```
+   curl -i -X GET http://localhost:3000/products
+   ```
 
--   Se tiver o `curl` instalado na sua máquina, basta usar:
+   Or visit `http://localhost:3000/products` in your browser.
 
-```
-curl -i -X GET http://localhost:3000/products
-```
+7. Open the front-end in a browser at [http://localhost:5000](http://localhost:5000) and test the bookstore’s features.
 
--   Caso contrário, você pode fazer uma requisição acessando, no seu navegador, a seguinte URL: `http://localhost:3000/products`.
+## Practical Task #1: Implementing a New Operation
 
-7. Teste agora o sistema como um todo, abrindo o front-end em um navegador: http://localhost:5000. Faça então um teste das principais funcionalidades da bookstore.
+In this task, you will implement a new operation in the `Inventory` service called `SearchProductByID`, which searches for a product by its ID.
 
-## Tarefa Prática #1: Implementando uma Nova Operação
+Steps include:
 
-Nesta primeira tarefa, você irá implementar uma nova operação no Service `Inventory`. Essa operação, chamada `SearchProductByID` vai search por um product, dado o seu id.
+* Declaring the function signature in `proto/inventory.proto`.
+* Adding a `Payload` message containing the product ID.
+* Implementing the function in [services/inventory/index.js](https://github.com/aserg-ufmg/micro-livraria/blob/main/services/inventory/index.js).
+* Updating the Controller to add a new route `/product/:id`.
 
-Como descrito anteriormente, as assinaturas das operações de cada microservice são definidas em um arquivo `.proto`, no caso [proto/inventory.proto](https://github.com/aserg-ufmg/micro-bookstore/blob/main/proto/inventory.proto).
+Finally, test the new API endpoint at: `http://localhost:3000/product/1`.
 
-#### Passo 1
+(Commit & Push instructions are also provided.)
 
-Primeiro, você deve declarar a assinatura da nova operação. Para isso, inclua a definição dessa assinatura no referido arquivo `.proto` (na linha logo após a assinatura da função `SearchAllProducts`):
+## Practical Task #2: Creating a Docker Container
 
-```proto
-service InventoryService {
-    rpc SearchAllProducts(Empty) returns (ProductsResponse) {}
-    rpc SearchProductByID(Payload) returns (ProductResponse) {}
-}
-```
+In this task, you will create a Docker container for the `Shipping` microservice.
 
-Em outras palavras, você está definindo que o microservice `Inventory` vai responder a uma nova requisição, chamada `SearchProductByID`, que tem como parâmetro de entrada um objeto do tipo `Payload` e como parâmetro de saída um objeto do tipo `ProductResponse`.
+Steps include:
 
-#### Passo 2
+* Writing a `shipping.Dockerfile` to build an image.
+* Running `docker build` to generate the image.
+* Updating `package.json` to exclude `start-shipping` from `npm run start`.
+* Running the container with `docker run -ti --name shipping -p 3001:3001 micro-livraria/shipping`.
 
-Inclua também no mesmo arquivo a declaração do tipo do objeto `Payload`, o qual apenas contém o id do product a ser pesquisado.
+After verifying functionality, you can stop, remove the container, and remove the image using `docker stop`, `docker rm`, and `docker rmi`.
 
-```proto
-message Payload {
-    int32 id = 1;
-}
-```
+## Final Remarks
 
-Veja que `ProductResponse` -- isto é, o tipo de retorno da operação -- já está declarado mais abaixo no arquivo `proto`:
+This exercise demonstrated a small microservice-based application. While simplified, it illustrates core principles of microservices and some key technologies.
 
-```proto
-message ProductsResponse {
-    repeated ProductResponse products = 1;
-}
-```
+Real-world applications, however, include additional components such as databases, load balancers, and orchestrators like [Kubernetes](https://kubernetes.io/).
 
-Ou seja, a resposta da nossa requisição conterá um único campo, do tipo `ProductResponse`, que também já está implementando no mesmo arquivo:
+## Credits
 
-```proto
-message ProductResponse {
-    int32 id = 1;
-    string name = 2;
-    int32 quantity = 3;
-    float price = 4;
-    string photo = 5;
-    string author = 6;
-}
-```
+This practical exercise, including its code, was developed by **Rodrigo Brito**, Master’s student at DCC/UFMG, as part of the **Teaching Internship** course in 2020/2, supervised by **Prof. Marco Tulio Valente**.
 
-#### Passo 3
+The repository code is licensed under MIT. The guide above is licensed under CC-BY.
 
-Agora você deve implementar a função `SearchProductByID` no arquivo [services/inventory/index.js](https://github.com/aserg-ufmg/micro-bookstore/blob/main/services/inventory/index.js).
-
-Reforçando, no passo anterior, apenas declaramos a assinatura dessa função. Então, agora, vamos prover uma implementação para ela.
-
-Para isso, você precisa implementar a função requerida pelo segundo parâmetro da função `server.addService`, localizada na linha 17 do arquivo [services/inventory/index.js](https://github.com/aserg-ufmg/micro-bookstore/blob/main/services/inventory/index.js).
-
-De forma semelhante à função `SearchAllProducts`, que já está implementada, você deve adicionar o corpo da função `SearchProductByID` com a lógica de pesquisa de products por id. Este código deve ser adicionado logo após o `SearchAllProducts` na linha 23.
-
-```js
-    SearchProductByID: (payload, callback) => {
-        callback(
-            null,
-            products.find((product) => product.id == payload.request.id)
-        );
-    },
-```
-
-A função acima usa o método `find` para search em `products` pelo id de product fornecido. Veja que:
-
--   `payload` é o parâmetro de entrada do nosso Service, conforme definido antes no arquivo .proto (passo 2). Ele armazena o id do product que queremos search. Para acessar esse id basta escrever `payload.request.id`.
-
--   `product` é uma unidade de product a ser pesquisado pela função `find` (nativa de JavaScript). Essa pesquisa é feita em todos os items da lista de products até que um primeiro `product` atenda a condição de busca, isto é `product.id == payload.request.id`.
-
--   [products](https://github.com/aserg-ufmg/micro-bookstore/blob/main/services/inventory/products.json) é um arquivo JSON que contém a descrição dos livros à venda na bookstore.
-
--   `callback` é uma função que deve ser invocada com dois parâmetros:
-    -   O primeiro parâmetro é um objeto de error, caso ocorra. No nosso exemplo nenhum error será retornado, portanto `null`.
-    -   O segundo parâmetro é o resultado da função, no nosso caso um `ProductResponse`, assim como definido no arquivo [proto/inventory.proto](https://github.com/aserg-ufmg/micro-bookstore/blob/main/proto/inventory.proto).
-
-#### Passo 4
-
-Para finalizar, temos que incluir a função `SearchProductByID` em nosso `Controller`. Para isso, você deve incluir uma nova rota `/product/{id}` que receberá o id do product como parâmetro. Na definição da rota, você deve também incluir a chamada para o método definido no Passo 3.
-
-Sendo mais específico, o seguinte trecho de código deve ser adicionado na linha 44 do arquivo [services/controller/index.js](https://github.com/aserg-ufmg/micro-bookstore/blob/main/services/controller/index.js), logo após a rota `/shipping/:zipcode`.
-
-```js
-app.get('/product/:id', (req, res, next) => {
-    // Chama método do microservice.
-    inventory.SearchProductByID({ id: req.params.id }, (err, product) => {
-        // Se ocorrer algum error de comunicação
-        // com o microservice, retorna para o navegador.
-        if (err) {
-            console.error(err);
-            res.status(500).send({ error: 'something failed :(' });
-        } else {
-            // Caso contrário, retorna resultado do
-            // microservice (um arquivo JSON) com os dados
-            // do product pesquisado
-            res.json(product);
-        }
-    });
-});
-```
-
-Finalize, efetuando uma chamada no novo endpoint da API: http://localhost:3000/product/1
-
-Para ficar claro: até aqui, apenas implementamos a nova operação no backend. A sua incorporação no frontend ficará pendente, pois requer mudar a interface Web, para, por exemplo, incluir um botão "search Livro".
-
-**IMPORTANTE**: Se tudo funcionou corretamente, dê um **COMMIT & PUSH** (e certifique-se de que seu repositório no GitHub foi atualizado; isso é fundamental para seu trabalho ser devidamente corrigido).
-
-```bash
-git add --all
-git commit -m "Tarefa prática #1 - Microservices"
-git push origin main
-```
-
-## Tarefa Prática #2: Criando um Container Docker
-
-Nesta segunda tarefa, você irá criar um container Docker para o seu microserviço. Os containers são importantes para isolar e distribuir os microserviços em ambientes de produção. Em outras palavras, uma vez "copiado" para um container, um microservice pode ser executado em qualquer ambiente, seja ele sua máquina local, o servidor de sua universidade, ou um sistema de cloud (como Amazon AWS, Google Cloud, etc).
-
-Como nosso primeiro objetivo é didático, iremos criar apenas uma imagem Docker para exemplificar o uso de containers.
-
-Caso você não tenha o Docker instalado em sua máquina, é preciso instalá-lo antes de iniciar a tarefa. Um passo-a-passo de instalação pode ser encontrado na [documentação oficial](https://docs.docker.com/get-docker/).
-
-#### Passo 1
-
-Crie um arquivo na raiz do projeto com o name `shipping.Dockerfile`. Este arquivo armazenará as instruções para criação de uma imagem Docker para o Service `Shipping`.
-
-Como ilustrado na próxima figura, o Dockerfile é utilizado para gerar uma imagem. A partir dessa imagem, você pode criar várias instâncias de uma aplicação. Com isso, conseguimos escalar o microservice de `Shipping` de forma horizontal.
-
-<p align="center">
-    <img width="70%" src="https://user-images.githubusercontent.com/7620947/108651385-67ccda80-74a0-11eb-9390-80df6ea6fd8c.png" />
-</p>
-
-No Dockerfile, você precisa incluir cinco instruções
-
--   `FROM`: tecnologia que será a base de criação da imagem.
--   `WORKDIR`: diretório da imagem na qual os comandos serão executados.
--   `COPY`: comando para copiar o código fonte para a imagem.
--   `RUN`: comando para instalação de dependências.
--   `CMD`: comando para executar o seu código quando o container for criado.
-
-Ou seja, nosso Dockerfile terá as seguintes linhas:
-
-```Dockerfile
-# Imagem base derivada do Node
-FROM node
-
-# Diretório de trabalho
-WORKDIR /app
-
-# Comando para copiar os arquivos para a pasta /app da imagem
-COPY . /app
-
-# Comando para instalar as dependências
-RUN npm install
-
-# Comando para inicializar (executar) a aplicação
-CMD ["node", "/app/services/shipping/index.js"]
-```
-
-#### Passo 2
-
-Agora nós vamos compilar o Dockerfile e criar a imagem. Para isto, execute o seguinte comando em um terminal do seu sistema operacional (esse comando precisa ser executado na raiz do projeto; ele pode também demorar um pouco mais para ser executado).
-
-```
-docker build -t micro-bookstore/shipping -f shipping.Dockerfile ./
-```
-
-onde:
-
--   `docker build`: comando de compilação do Docker.
--   `-t micro-bookstore/shipping`: tag de identificação da imagem criada.
--   `-f shipping.Dockerfile`: dockerfile a ser compilado.
-
-O `./` no final indica que estamos running os comandos do Dockerfile tendo como referência a raiz do projeto.
-
-#### Passo 3
-
-Antes de iniciar o Service via container Docker, precisamos remover a inicialização do Service de Shipping do comando `npm run start`. Para isso, basta remover o sub-comando `start-shipping` localizado na linha 7 do arquivo [package.json](https://github.com/aserg-ufmg/micro-bookstore/blob/main/package.json), conforme mostrado no próximo diff (a linha com o símbolo "-" no início representa a linha original do arquivo; a linha com o símbolo "+" representa como essa linha deve ficar após a sua alteração):
-
-```diff
-diff --git a/package.json b/package.json
-index 25ff65c..552a04e 100644
---- a/package.json
-+++ b/package.json
-@@ -4,7 +4,7 @@
-     "description": "Toy example of microservice",
-     "main": "",
-     "scripts": {
--        "start": "run-p start-frontend start-controller start-shipping start-inventory",
-+        "start": "run-p start-frontend start-controller start-inventory",
-         "start-controller": "nodemon services/controller/index.js",
-         "start-shipping": "nodemon services/shipping/index.js",
-         "start-inventory": "nodemon services/inventory/index.js",
-
-```
-
-Em seguida, você precisa parar o comando antigo (basta usar um CTRL-C no terminal) e rodar o comando `npm run start` para efetuar as mudanças.
-
-Por fim, para executar a imagem criada no passo anterior (ou seja, colocar de novo o microservice de `Shipping` no ar), basta usar o comando:
-
-```
-docker run -ti --name shipping -p 3001:3001 micro-bookstore/shipping
-```
-
-onde:
-
--   `docker run`: comando de execução de uma imagem docker.
--   `-ti`: habilita a interação com o container via terminal.
--   `--name shipping`: define o name do container criado.
--   `-p 3001:3001`: redireciona a porta 3001 do container para sua máquina.
--   `micro-bookstore/shipping`: especifica qual a imagem deve-se executar.
-
-Se tudo estiver correto, você irá receber a seguinte mensagem em seu terminal:
-
-```
-Shipping Service running
-```
-
-E o Controller pode acessar o Service diretamente através do container Docker.
-
-**Mas qual foi exatamente a vantagem de criar esse container?** Agora, você pode levá-lo para qualquer máquina ou sistema operacional e colocar o microservice para rodar sem instalar mais nada (incluindo bibliotecas, dependências externas, módulos de runtime, etc). Isso vai ocorrer com containers implementados em JavaScript, como no nosso exemplo, mas também com containers implementados em qualquer outra linguagem.
-
-**IMPORTANTE**: Se tudo funcionou corretamente, dê um **COMMIT & PUSH** (e certifique-se de que seu repositório no GitHub foi atualizado; isso é fundamental para seu trabalho ser devidamente corrigido).
-
-```bash
-git add --all
-git commit -m "Tarefa prática #2 - Docker"
-git push origin main
-```
-
-#### Passo 4
-
-Como tudo funcionou corretamente, já podemos encerrar o container e limpar nosso ambiente. Para isso, utilizaremos os seguintes comandos:
-
-```
-docker stop shipping
-```
-
-onde:
-
--   `docker stop`: comando para interromper a execução de um container.
--   `shipping`: name do container que será interrompido.
-
-
-```
-docker rm shipping
-```
-
-onde:
-
--   `docker rm`: comando para remover um container.
--   `shipping`: name do container que será removido.
-
-
-```
-docker rmi micro-bookstore/shipping
-```
-
-onde:
-
--   `docker rmi`: comando para remover uma imagem.
--   `micro-bookstore/shipping`: name da imagem que será removida.
-
-## Comentários Finais
-
-Nesta aula, trabalhamos em uma aplicação baseada em microservices. Apesar de pequena, ela ilustra os princípios básicos de microservices, bem como algumas tecnologias importantes quando se implementa esse tipo de arquitetura.
-
-No entanto, é importante ressaltar que em uma aplicação real existem outros componentes, como bancos de dados, balanceadores de carga e orquestradores.
-
-A função de um **balanceador de carga** é dividir as requisições quando temos mais de uma instância do mesmo microservice. Imagine que o microservice de shipping da loja virtual ficou sobrecarregado e, então, tivemos que colocar para rodar múltiplas instâncias do mesmo. Nesse caso, precisamos de um balanceador para dividir as requisições que chegam entre essas instâncias.
-
-Já um **orquestrador** gerencia o ciclo de vida de containers. Por exemplo, se um servidor para de funcionar, ele automaticamente move os seus containers para um outro servidor. Se o número de acessos ao sistema aumenta bruscamente, um orquestrador também aumenta, em seguida, o número de containers. [Kubernetes](https://kubernetes.io/) é um dos orquestradores mais usados atualmente.
-
-Se quiser estudar um segundo sistema de demonstração de microservices, sugerimos este [repositório](https://github.com/GoogleCloudPlatform/microservices-demo), mantido pelo Service de nuvem do Google.
-
-## Créditos
-
-Este exercício prático, incluindo o seu código, foi elaborado por **Rodrigo Brito**, aluno de mestrado do DCC/UFMG, como parte das suas atividades na disciplina Estágio em Docência, cursada em 2020/2, sob orientação do **Prof. Marco Tulio Valente**.
-
-O código deste repositório possui uma licença MIT. O roteiro descrito acima possui uma licença CC-BY.
