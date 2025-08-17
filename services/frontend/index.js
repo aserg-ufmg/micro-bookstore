@@ -35,7 +35,7 @@ function newBook(book) {
     return div;
 }
 
-function calculateShipping(id, cep) {
+function calculateShipping(id, zipcode) {
     fetch('http://localhost:3000/shipping/' + zipcode)
         .then((data) => {
             if (data.ok) {
