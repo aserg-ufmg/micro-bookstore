@@ -3,19 +3,19 @@
 This repository contains a simple example of a virtual bookstore
 implemented using a **microservices architecture**. The example was
 designed for use in a hands-on class about microservices, which can,
-for example, take place after studying
+for example, take place after covering
 [Chapter 7](https://softengbook.org/chapter7) of the book
 [Software Engineering: A Modern Approach](https://softengbook.org).
 
-The goal of the class is to give students a first contact with
+The goal of the class is to give the students a first contact with
 microservices and with technologies commonly used in this type of
 architecture, such as Node.js, REST, gRPC, and Docker.
 
-Since our goal is educational, the virtual bookstore offers only three
+Since our goal is educational, the bookstore offers only three
 books for sale, as shown in the figure below, which illustrates the
 system’s web interface. Furthermore, the purchase operation only
 simulates the user’s action and does not update the stock. Thus,
-bookstore clients can perform only two operations: (1) list products
+clients can perform only two operations: (1) list products
 for sale and (2) calculate shipping costs.
 
 <p align="center">
@@ -29,10 +29,11 @@ In the rest of this document we will:
   this repository.
 * Describe two practical tasks for students:
 
-  * Practical Task #1: Implement a new operation in one of the
+  * Task #1: Implement a new operation in one of the
     microservices.
-  * Practical Task #2: Create Docker containers to facilitate running
+  * Task #2: Create Docker containers to facilitate running
     the microservices.
+
 
 ## Architecture
 
@@ -43,22 +44,23 @@ The micro-bookstore has four microservices:
 * **Shipping:** responsible for calculating shipping costs.
 * **Inventory:** responsible for managing the bookstore’s stock.
 
-All four microservices are implemented in JavaScript, using Node.js for
+These microservices are implemented in JavaScript, using Node.js for
 back-end execution.
 
-However, you will be able to complete the practical tasks even if you
-have never programmed in JavaScript, because our guide already
+However, you will be able to complete the proposed tasks even if you
+have never programmed in JavaScript, because our guide
 includes the code snippets you need to copy into the system.
 
 To simplify execution and understanding, no databases or external
 services are used.
+
 
 ## Communication Protocols
 
 As illustrated in the diagram below, communication between the front-end
 and the back-end uses a REST API, which is common for web systems.
 
-Communication between the Controller and the back-end microservices,
+Communication between the Controller and the microservices,
 however, is based on [gRPC](https://grpc.io/).
 
 <p align="center">
@@ -70,7 +72,7 @@ than REST in many scenarios.
 Specifically, gRPC is based on the concept of Remote Procedure Call
 (RPC). The idea is simple: in distributed applications using gRPC, a
 client can call functions implemented in other processes transparently,
-as if those functions were local. In other words, gRPC calls have the
+as if they were local. In other words, gRPC calls have the
 same syntax as normal function calls.
 
 To achieve this transparency, gRPC relies on two key concepts:
@@ -91,16 +93,30 @@ file also declares the types of the input and output parameters.
 
 The following example shows the 
 [.proto](https://github.com/aserg-ufmg/micro-bookstore/blob/main/proto/shipping.proto)
-file for our shipping microservice. It defines a function called
-`GetShippingRate`. To call this function, we must provide an object
+file for our shipping microservice. 
+
+```proto
+syntax = "proto3";
+
+service ShippingService {
+    rpc GetShippingRate(ShippingPayload) returns (ShippingResponse) {}
+}
+
+message ShippingPayload {
+    string cep = 1;
+}
+
+message ShippingResponse {
+    float value = 1;
+}
+```
+
+It defines a function (or service) called
+`GetShippingRate`. To call this function, we must provide an object (or message)
 containing the ZIP code (`ShippingPayLoad`) as input. The function then
-returns a `ShippingResponse` object with the shipping cost.
+returns a `ShippingResponse` object (or message) with the shipping cost. 
 
-<p align="center">
-    <img width="70%" src="https://user-images.githubusercontent.com/7620947/108770189-c776c480-7538-11eb-850a-f8a23f562fa5.png" />
-</p>
-
-In gRPC, messages (e.g., `ShippingPayload`) are composed of fields, similar
+As showed, in gRPC, messages (e.g., `ShippingPayload`) are composed of fields, similar
 to a `struct` in C. Each field has a name (e.g., `zipcode`) and a type
 (e.g., `string`), as well as an integer identifier (e.g., `= 1`) used
 in the binary format of gRPC messages.
@@ -157,7 +173,7 @@ username to the URL):
 
 
 
-## Practical Task #1: Implementing a New Operation
+## Task #1: Implementing a New Operation
 
 In this first task, you will implement a new operation in the `Inventory` service. This operation, called `SearchProductByID`, will search for a product given its ID.
 
@@ -276,7 +292,7 @@ git push origin main
 
 ---
 
-## Practical Task #2: Creating a Docker Container
+## Task #2: Creating a Docker Container
 
 In this second task, you will create a Docker container for your microservice. Containers are important for isolating and distributing microservices in production environments. In other words, once "copied" to a container, a microservice can run in any environment, whether it is your local machine, your university server, or a cloud system (such as Amazon AWS, Google Cloud, etc).
 
