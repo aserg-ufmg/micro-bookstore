@@ -1,12 +1,23 @@
 # Micro-Bookstore: A Practical Example of Microservices
 
-This repository contains a simple example of a virtual bookstore built using a **microservices architecture**.
+This repository contains a simple example of a virtual bookstore built
+using a **microservices architecture**.
 
-The example was designed to be used in a **hands-on class about microservices**, which can, for example, take place after studying [Chapter 7](https://engsoftmoderna.info/cap7.html) of the book [Modern Software Engineering](https://engsoftmoderna.info).
+The example was designed to be used in a **hands-on class about
+microservices**, which can, for example, take place after studying
+[Chapter 7](https://softengbook.org/chapter7) of the book
+[Software Engineering: A Modern Approach](https://softengbook.org).
 
-The goal of the class is to give students a first contact with microservices and with technologies commonly used in this type of architecture, such as **Node.js**, **REST**, **gRPC**, and **Docker**.
+The goal of the class is to give students a first contact with
+microservices and with technologies commonly used in this type of
+architecture, such as Node.js, REST, gRPC, and Docker.
 
-Since our goal is educational, the virtual bookstore offers only three books for sale, as shown in the figure below, which illustrates the system’s web interface. Furthermore, the purchase operation only simulates the user’s action and does not update the stock. Thus, bookstore clients can perform only two operations: (1) list products for sale; (2) calculate shipping costs.
+Since our goal is educational, the virtual bookstore offers only three
+books for sale, as shown in the figure below, which illustrates the
+system’s web interface. Furthermore, the purchase operation only
+simulates the user’s action and does not update the stock. Thus,
+bookstore clients can perform only two operations: (1) list products
+for sale; (2) calculate shipping costs.
 
 <p align="center">
     <img width="70%" src="https://user-images.githubusercontent.com/7620947/108773349-f68f3500-753c-11eb-8c4f-434ca9a9deec.png" />
@@ -15,53 +26,75 @@ Since our goal is educational, the virtual bookstore offers only three books for
 In the rest of this document we will:
 
 * Describe the system, focusing on its architecture.
-* Provide instructions to run it locally using the code available in this repository.
+* Provide instructions to run it locally using the code available in
+  this repository.
 * Describe two practical tasks for students:
 
-  * Practical Task #1: Implement a new operation in one of the microservices.
-  * Practical Task #2: Create Docker containers to facilitate running the microservices.
+  * Practical Task #1: Implement a new operation in one of the
+    microservices.
+  * Practical Task #2: Create Docker containers to facilitate running
+    the microservices.
 
 ## Architecture
 
 The micro-bookstore has four microservices:
 
-* Front-end: microservice responsible for the user interface, as shown in the figure above.
-* Controller: microservice responsible for mediating communication between the front-end and the backend.
-* Shipping: microservice responsible for calculating shipping costs.
-* Inventory: microservice responsible for managing the bookstore’s stock.
+* Front-end: responsible for the user interface, as shown in the figure above.
+* Controller: responsible for mediating communication between the front-end and the backend.
+* Shipping: responsible for calculating shipping costs.
+* Inventory: responsible for managing the bookstore’s stock.
 
-All four microservices are implemented in **JavaScript**, using Node.js for backend execution.
+All four microservices are implemented in JavaScript, using Node.js for
+backend execution.
 
-However, **you will be able to complete the practical tasks even if you have never programmed in JavaScript**, because our guide already includes the code snippets you need to copy into the system.
+However, **you will be able to complete the practical tasks even if you
+have never programmed in JavaScript**, because our guide already
+includes the code snippets you need to copy into the system.
 
-To simplify execution and understanding, no databases or external services are used.
+To simplify execution and understanding, no databases or external
+services are used.
 
 ## Communication Protocols
 
-As illustrated in the diagram below, communication between the front-end and the backend uses a **REST API**, which is common for web systems.
+As illustrated in the diagram below, communication between the front-end
+and the backend uses a REST API, which is common for web systems.
 
-Communication between the Controller and the backend microservices, however, is based on [gRPC](https://grpc.io/).
+Communication between the Controller and the backend microservices,
+however, is based on [gRPC](https://grpc.io/).
 
 <p align="center">
     <img width="70%" src="https://user-images.githubusercontent.com/7620947/108454750-bc2b4c80-724b-11eb-82e5-717b8b5c5a88.png" />
 </p>
 
-We chose gRPC for the backend because it performs better than REST. Specifically, gRPC is based on the concept of **Remote Procedure Call (RPC)**. The idea is simple: in distributed applications using gRPC, a client can call functions implemented in other processes transparently, as if those functions were local. In other words, gRPC calls have the same syntax as normal function calls.
+We chose gRPC for the backend because it performs better than REST.
+Specifically, gRPC is based on the concept of Remote Procedure Call
+(RPC). The idea is simple: in distributed applications using gRPC, a
+client can call functions implemented in other processes transparently,
+as if those functions were local. In other words, gRPC calls have the
+same syntax as normal function calls.
 
 To achieve this transparency, gRPC relies on two key concepts:
 
 * a language for interface definition
 * a protocol for exchanging messages between client and server applications
 
-In gRPC, the implementation of these concepts is called **Protocol Buffer**, which can be summarized as:
+In gRPC, the implementation of these concepts is called **Protocol
+Buffer**, which can be summarized as:
 
 > Protocol Buffer = interface definition language + protocol for defining messages exchanged between client and server applications
 
 ### Example of a .proto File
 
-With gRPC, each microservice has a `.proto` file that defines the signatures of the operations it provides to other microservices. This file also declares the types of the input and output parameters.
+With gRPC, each microservice has a `.proto` file that defines the
+signatures of the operations it provides to other microservices. This
+file also declares the types of the input and output parameters.
 
-The following example shows the [.proto](https://github.com/aserg-ufmg/micro-livraria/blob/main/proto/shipping.proto) file for our shipping microservice. It defines a function `GetShippingRate`. To call this function, we must provide an object containing the ZIP code (`ShippingPayLoad`) as input. The function then returns a `ShippingResponse` object with the shipping cost.
+The following example shows the 
+[.proto](https://github.com/aserg-ufmg/micro-bookstore/blob/main/proto/shipping.proto)
+file for our shipping microservice. It defines a function
+`GetShippingRate`. To call this function, we must provide an object
+containing the ZIP code (`ShippingPayLoad`) as input. The function then
+returns a `ShippingResponse` object with the shipping cost.
 
 <p align="center">
     <img width="70%" src="https://user-images.githubusercontent.com/7620947/108770189-c776c480-7538-11eb-850a-f8a23f562fa5.png" />
